@@ -1155,8 +1155,8 @@ function renderContas(){
         .reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, ct.saldoIni||0);
       const borda=ct.cor||TIPO_BORDA[normTipo(ct.tipo)]||'#667788';
       const gradCt='linear-gradient(135deg,'+borda+'15,'+borda+'05)';
-      html+=`<div class="conta-card" data-id="${ct.id}" style="background:${gradCt};border-color:${borda}44;display:flex;align-items:center;gap:0;cursor:pointer;touch-action:none">
-        <div class="drag-handle" data-drag="${ct.id}" style="padding:12px 8px 12px 4px;cursor:grab;color:${borda}55;font-size:16px;flex-shrink:0;touch-action:none" onclick="event.stopPropagation()">⠿</div>
+      html+=`<div class="conta-card" data-id="${ct.id}" style="background:${gradCt};border-color:${borda}44;display:flex;align-items:center;gap:0;cursor:pointer">
+        <div class="drag-handle" data-drag="${ct.id}" style="padding:12px 8px 12px 4px;cursor:grab;color:${borda}55;font-size:16px;flex-shrink:0;touch-action:none;-webkit-user-select:none;user-select:none" onclick="event.stopPropagation()">⠿</div>
         <div style="flex:1;display:flex;align-items:center;gap:10px" onclick="abrirContaDetalhe(${ct.id})">
           <div class="conta-ico" style="background:${borda}22;color:${borda}">${tipoIco[normTipo(ct.tipo)]||'💳'}</div>
           <div class="conta-info">
@@ -1231,12 +1231,13 @@ function _initDragContas(){
   container.querySelectorAll('.drag-handle').forEach(handle=>{
     // Touch (celular)
     handle.addEventListener('touchstart',e=>{
-      e.preventDefault();
       const card=handle.closest('.conta-card');
       if(card) startDrag(card, e.touches[0].clientY);
-    },{passive:false});
+      // NÃO chama preventDefault aqui — permite scroll se não arrastar
+    },{passive:true});
     handle.addEventListener('touchmove',e=>{
-      e.preventDefault();
+      if(!dragging) return;
+      e.preventDefault(); // só bloqueia scroll quando drag ativo
       moveDrag(e.touches[0].clientY);
     },{passive:false});
     handle.addEventListener('touchend',endDrag,{passive:false});
