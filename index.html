@@ -34,7 +34,9 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:none;opacity:.6}
   position:relative;
 }
 #header{flex-shrink:0;padding:calc(var(--st) + 10px) 16px 0;background:linear-gradient(160deg,#003a8c,#0055cc);border-bottom:2px solid #003a8c}
-#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 20px;background:#ffffff}
+#content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px 20px;background:#ffffff;display:flex;flex-direction:column}
+#aC{flex:1;min-height:0}
+#viewContaDetalhe{flex:1;min-height:0}
 #bottomnav{flex-shrink:0;position:sticky;bottom:0;left:0;right:0;padding:8px 0 calc(8px + var(--sb));background:#ffffff;border-top:2px solid #0055cc;display:flex;z-index:100}
 
 /* HEADER */
@@ -335,15 +337,15 @@ body{background:#d0d8e8;margin:0;padding:0;}
   </div>
 
   <!-- ABA CONTAS -->
-  <div id="aC" style="display:none">
+  <div id="aC" style="display:none;flex-direction:column;flex:1;min-height:0">
     <!-- LISTA DE CONTAS -->
     <div id="viewContas">
       <div id="listaContas"></div>
     </div>
     <!-- DETALHE DA CONTA -->
-    <div id="viewContaDetalhe" style="display:none">
+    <div id="viewContaDetalhe" style="display:none;flex-direction:column;flex:1;min-height:0">
       <!-- header da conta -->
-      <div id="contaDetalheHeader" style="border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+      <div id="contaDetalheHeader" style="border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
         <button onclick="voltarContas()" style="background:transparent;border:none;font-size:22px;cursor:pointer;color:#0055cc;padding:0 6px 0 0;min-width:32px">‹</button>
         <div id="contaDetalheIco" style="width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0"></div>
         <div style="flex:1;min-width:0">
@@ -352,34 +354,40 @@ body{background:#d0d8e8;margin:0;padding:0;}
         </div>
         <button onclick="abrirEditContaAtual()" style="background:transparent;border:none;font-size:18px;cursor:pointer;color:#0055cc;padding:2px 4px">✏️</button>
       </div>
-      <!-- saldos -->
-      <div class="cards" style="margin-bottom:12px">
-        <div class="card">
-          <div class="c-lbl">💰 Saldo Atual</div>
-          <div class="c-val" id="dSaldo">R$0</div>
-          <div class="c-sub" id="dSaldoSub"></div>
+
+      <!-- lista de lançamentos (scrollável) -->
+      <div style="flex:1;overflow-y:auto;padding-bottom:4px">
+        <div id="dListaL" class="lista"></div>
+        <div id="dAreaConc" style="display:none">
+          <div class="sec-label verde">✅ Conciliados</div>
+          <div class="lista" id="dListaConcL"></div>
         </div>
-        <div class="card conc-card">
-          <div class="c-lbl" style="color:#0055cc">🏦 Saldo no Banco</div>
-          <div class="c-val" id="dConc">R$0</div>
-          <div class="c-sub" id="dConcSub"></div>
+        <button class="btn-verconc" id="dBtnVerConc" onclick="toggleConcDetalhe()" style="display:none;margin-top:8px">
+          <span class="btn-verconc-ico">🔒</span>
+          <span id="dBtnVCTxt">Exibir conciliados</span>
+          <span class="btn-verconc-badge" id="dBtnVCBadge">0</span>
+        </button>
+      </div>
+
+      <!-- rodapé fixo: saldo atual | + | saldo a conciliar -->
+      <div style="flex-shrink:0;display:flex;align-items:center;gap:0;border-top:1px solid var(--border);background:var(--bg);padding:6px 8px 6px 8px;margin-top:4px;border-radius:0 0 12px 12px">
+        <!-- saldo atual -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">💰 Saldo Atual</div>
+          <div class="c-val" id="dSaldo" style="font-size:12px;font-weight:700">R$0</div>
+          <div class="c-sub" id="dSaldoSub" style="font-size:9px;text-align:center"></div>
+        </div>
+        <!-- botão + central -->
+        <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0 8px">
+          <button onclick="abrirNovoNaConta()" style="width:40px;height:40px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:24px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0055cc44;line-height:1">+</button>
+        </div>
+        <!-- saldo a conciliar -->
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
+          <div style="font-size:9px;font-weight:700;color:#0055cc;text-transform:uppercase;letter-spacing:.8px">🏦 A Conciliar</div>
+          <div class="c-val" id="dConc" style="font-size:12px;font-weight:700">R$0</div>
+          <div class="c-sub" id="dConcSub" style="font-size:9px;text-align:center"></div>
         </div>
       </div>
-      <!-- lançamentos -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:11px;font-weight:700;color:#1a2a3a;text-transform:uppercase;letter-spacing:1.5px">Lançamentos</span>
-        <button class="btn-cat" onclick="abrirNovoNaConta()" style="color:var(--accent);border-color:var(--accent);font-size:12px">＋ Lançamento</button>
-      </div>
-      <div id="dListaL" class="lista"></div>
-      <div id="dAreaConc" style="display:none">
-        <div class="sec-label verde">✅ Conciliados</div>
-        <div class="lista" id="dListaConcL"></div>
-      </div>
-      <button class="btn-verconc" id="dBtnVerConc" onclick="toggleConcDetalhe()" style="display:none;margin-top:8px">
-        <span class="btn-verconc-ico">🔒</span>
-        <span id="dBtnVCTxt">Exibir conciliados</span>
-        <span class="btn-verconc-badge" id="dBtnVCBadge">0</span>
-      </button>
     </div>
   </div>
 
@@ -413,7 +421,7 @@ body{background:#d0d8e8;margin:0;padding:0;}
         <select id="fContaDR" class="finp"></select>
       </div>
       <div class="f2">
-        <div><label class="flbl">VALOR R$</label><input type="text" id="fValor" class="finp" placeholder="0,00" inputmode="decimal"/></div>
+        <div><label class="flbl">VALOR R$</label><input type="text" id="fValor" class="finp" placeholder="0,00" inputmode="numeric"/></div>
         <div><label class="flbl">DATA</label><input type="date" id="fData" class="finp"/></div>
       </div>
       <div class="frow" style="position:relative">
@@ -435,7 +443,7 @@ body{background:#d0d8e8;margin:0;padding:0;}
     <div id="fCamposT" style="display:none">
       <div class="f2">
         <div><label class="flbl">DATA</label><input type="date" id="fDataT" class="finp"/></div>
-        <div><label class="flbl">VALOR R$</label><input type="text" id="fValorT" class="finp" placeholder="0,00" inputmode="decimal"/></div>
+        <div><label class="flbl">VALOR R$</label><input type="text" id="fValorT" class="finp" placeholder="0,00" inputmode="numeric"/></div>
       </div>
       <div class="frow">
         <label class="flbl">A PARTIR DA CONTA</label>
@@ -465,13 +473,14 @@ body{background:#d0d8e8;margin:0;padding:0;}
       <select id="cTipo" class="finp">
         <option value="cartao">Cartão de Crédito</option>
         <option value="corrente">Corrente</option>
+        <option value="emprestimo">Empréstimo</option>
         <option value="investimento">Investimento</option>
         <option value="outro">Outro</option>
         <option value="poupanca">Poupança</option>
       </select>
     </div>
     <div class="frow"><label class="flbl">BANCO / INSTITUIÇÃO</label><input type="text" id="cBanco" class="finp" placeholder="Ex: Itaú, Nubank, XP…"/></div>
-    <div class="frow"><label class="flbl">SALDO INICIAL (R$)</label><input type="number" id="cSaldoIni" class="finp" placeholder="0,00" step="0.01" inputmode="decimal"/></div>
+    <div class="frow"><label class="flbl">SALDO INICIAL (R$)</label><input type="text" id="cSaldoIni" class="finp" placeholder="0,00" inputmode="numeric"/></div>
     <div class="frow">
       <label class="flbl">COR DA CONTA</label>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="corContaPicker"></div>
@@ -531,7 +540,7 @@ function setAba(a){
   aba=a;
   g('aR').style.display=a==='r'?'':'none';
   g('aG').style.display=a==='g'?'':'none';
-  g('aC').style.display=a==='c'?'':'none';
+  g('aC').style.display=a==='c'?'flex':'none';
   ['bnR','bnC','bnG'].forEach(id=>{
     const el=g(id); if(el) el.classList.toggle('on', id==='bn'+a.toUpperCase());
   });
@@ -1028,7 +1037,7 @@ function abrirEd(id){
   const l=S.lanc.find(x=>x.id===id);if(!l)return;
   eId=id; g('shLT').textContent='✏ Editar';
   g('fData').value=l.data; setTipo(l.tipo);
-  g('fDesc').value=l.descricao; g('fValor').value=l.valor; g('fObs').value=l.obs||'';
+  g('fDesc').value=l.descricao; setMoeda('fValor',l.valor); g('fObs').value=l.obs||'';
   g('sugestoes').style.display='none';
   g('btnDelSheet').style.display='';
   g('shL').dataset.contaId=l.conta||'';
@@ -1049,7 +1058,7 @@ function salvar(){
   const tipo=g('fTipo').value;
 
   if(tipo==='T'){
-    const val=parseFloat(g('fValorT').value.replace(',','.'));
+    const val=lerMoeda('fValorT');
     const desc=g('fDescT').value.trim()||'Transferência';
     if(isNaN(val)||val<=0){alert('Preencha o valor.');return;}
     const ori=parseInt(g('fContaOri').value);
@@ -1059,7 +1068,7 @@ function salvar(){
     S.lanc.push({id:nId++,data,tipo:'D',descricao:desc,valor:val,categoria:null,obs:'Transferência enviada',conciliado:false,conta:ori});
     S.lanc.push({id:nId++,data,tipo:'C',descricao:desc,valor:val,categoria:null,obs:'Transferência recebida',conciliado:false,conta:dest});
   } else {
-    const desc=g('fDesc').value.trim(), val=parseFloat(g('fValor').value.replace(',','.'));
+    const desc=g('fDesc').value.trim(), val=lerMoeda('fValor');
     if(!desc||isNaN(val)||val<=0){alert('Preencha descrição e valor.');return;}
     const contaId=parseInt(g('fContaDR').value)||contaAtualId||null;
     const n={data:g('fData').value,tipo,descricao:desc,valor:val,categoria:parseInt(g('fCat').value),obs:g('fObs').value.trim(),conciliado:false,conta:contaId};
@@ -1072,15 +1081,43 @@ function salvar(){
 
 function abrirCats(){renderCats();g('shC').style.display='flex';}
 
-const tipoLabel={corrente:'Corrente',poupanca:'Poupança',investimento:'Investimento',cartao:'Cartão de Crédito',carteira:'Cartão de Crédito',outro:'Outro'};
-const tipoIco={corrente:'🏦',poupanca:'💰',investimento:'📈',cartao:'💳',carteira:'💳',outro:'🏧'};
-const TIPO_BORDA={corrente:'#0055cc',poupanca:'#008822',investimento:'#cc8800',cartao:'#999999',carteira:'#999999',outro:'#667788'};
+// ── MÁSCARA DE MOEDA ──
+// digitar só dígitos → formata automaticamente como R$ 0,00
+function _fmtMoeda(v){
+  let n = parseInt(v.replace(/\D/g,''),10)||0;
+  let s = (n/100).toFixed(2);           // "1234.56"
+  let [int, dec] = s.split('.');
+  // ponto nos milhares
+  int = int.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return int+','+dec;
+}
+function mascaraMoeda(input){
+  input.addEventListener('input', function(){
+    const pos = this.selectionStart;
+    const old = this.value;
+    this.value = _fmtMoeda(this.value);
+  });
+  input.addEventListener('focus', function(){
+    if(this.value==='0,00'||this.value==='') this.value='';
+  });
+  input.addEventListener('blur', function(){
+    if(!this.value||this.value==='0,00') this.value='0,00';
+    else this.value=_fmtMoeda(this.value);
+  });
+}
+function lerMoeda(id){ return parseFloat((g(id).value||'0').replace(/\./g,'').replace(',','.'))||0; }
+function setMoeda(id, val){ g(id).value=_fmtMoeda(String(Math.round((parseFloat(val)||0)*100))); }
+
+const tipoLabel={corrente:'Corrente',poupanca:'Poupança',investimento:'Investimento',cartao:'Cartão de Crédito',carteira:'Cartão de Crédito',emprestimo:'Empréstimo',outro:'Outro'};
+const tipoIco={corrente:'🏦',poupanca:'💰',investimento:'📈',cartao:'💳',carteira:'💳',emprestimo:'🤝',outro:'🏧'};
+const TIPO_BORDA={corrente:'#0055cc',poupanca:'#008822',investimento:'#cc8800',cartao:'#999999',carteira:'#999999',emprestimo:'#cc4400',outro:'#667788'};
 const TIPO_GRAD={
   corrente:'linear-gradient(135deg,#ddeeff,#f0f8ff)',
   poupanca:'linear-gradient(135deg,#ddffee,#f0fff8)',
   investimento:'linear-gradient(135deg,#fff8dd,#fffcf0)',
   cartao:'linear-gradient(135deg,#e8e8e8,#f5f5f5)',
   carteira:'linear-gradient(135deg,#e8e8e8,#f5f5f5)',
+  emprestimo:'linear-gradient(135deg,#ffe8dd,#fff5f0)',
   outro:'linear-gradient(135deg,#f0f0f0,#f8f8f8)',
 };
 // normalizar tipo antigo 'carteira' para 'cartao'
@@ -1088,16 +1125,15 @@ function normTipo(t){ return (t==='carteira')?'cartao':t; }
 
 function renderContas(){
   const el=g('listaContas');
-  const tipoGrad=TIPO_GRAD;
-  const tipoBorda=TIPO_BORDA;
 
   const totalGeral=S.contas.reduce((t,ct,idx)=>{
-    const ehPrincipal = idx===0;
+    const ehPrincipal=idx===0;
     const saldo=S.lanc
-      .filter(l=> l.conta===ct.id || (ehPrincipal && !l.conta))
+      .filter(l=>l.conta===ct.id||(ehPrincipal&&!l.conta))
       .reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, ct.saldoIni||0);
     return t+saldo;
   },0);
+
   let html=`<div class="contas-total">
     <div>
       <div class="contas-total-lbl">💼 Patrimônio Total</div>
@@ -1111,36 +1147,113 @@ function renderContas(){
   if(!S.contas.length){
     html+='<div class="empty-contas">Nenhuma conta cadastrada.<br>Toque em <b style="color:var(--accent)">+ Nova Conta</b> para começar.</div>';
   } else {
-    const grupos={corrente:[],poupanca:[],investimento:[],cartao:[],carteira:[],outro:[]};
-    S.contas.forEach(ct=>{ if(grupos[ct.tipo]) grupos[ct.tipo].push(ct); else grupos.outro.push(ct); });
-
-    Object.entries(grupos).forEach(([tipo, cts])=>{
-      if(!cts.length) return;
-      const lbl=tipoLabel[tipo]; const ico=tipoIco[tipo];
-      const borda=tipoBorda[normTipo(tipo)]||'#667788'; const grad=tipoGrad[normTipo(tipo)]||tipoGrad.outro;
-      html+=cts.map((ct,idx2)=>{
-        const ehPrincipal = S.contas.indexOf(ct)===0;
-        const saldo=S.lanc
-          .filter(l=> l.conta===ct.id || (ehPrincipal && !l.conta))
-          .reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, ct.saldoIni||0);
-        // cor customizada prevalece sobre cor do tipo
-        const bordaCt=ct.cor||borda;
-        const gradCt='linear-gradient(135deg,'+bordaCt+'15,'+bordaCt+'05)';
-        return`<div class="conta-card" onclick="abrirContaDetalhe(${ct.id})" style="background:${gradCt};border-color:${bordaCt}44">
-          <div class="conta-ico" style="background:${bordaCt}22;color:${bordaCt}">${tipoIco[normTipo(ct.tipo)]||'💳'}</div>
+    html+=`<div id="contasDrag" style="display:flex;flex-direction:column;gap:8px">`;
+    S.contas.forEach((ct,idx)=>{
+      const ehPrincipal=idx===0;
+      const saldo=S.lanc
+        .filter(l=>l.conta===ct.id||(ehPrincipal&&!l.conta))
+        .reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, ct.saldoIni||0);
+      const borda=ct.cor||TIPO_BORDA[normTipo(ct.tipo)]||'#667788';
+      const gradCt='linear-gradient(135deg,'+borda+'15,'+borda+'05)';
+      html+=`<div class="conta-card" data-id="${ct.id}" style="background:${gradCt};border-color:${borda}44;display:flex;align-items:center;gap:0;cursor:pointer;touch-action:none">
+        <div class="drag-handle" data-drag="${ct.id}" style="padding:12px 8px 12px 4px;cursor:grab;color:${borda}55;font-size:16px;flex-shrink:0;touch-action:none" onclick="event.stopPropagation()">⠿</div>
+        <div style="flex:1;display:flex;align-items:center;gap:10px" onclick="abrirContaDetalhe(${ct.id})">
+          <div class="conta-ico" style="background:${borda}22;color:${borda}">${tipoIco[normTipo(ct.tipo)]||'💳'}</div>
           <div class="conta-info">
             <div class="conta-nome">${ct.nome}</div>
-            <div class="conta-tipo" style="color:${bordaCt}99">${ct.banco||tipoLabel[normTipo(ct.tipo)]}</div>
+            <div class="conta-tipo" style="color:${borda}99">${ct.banco||tipoLabel[normTipo(ct.tipo)]}</div>
           </div>
           <div class="conta-saldo">
             <div class="conta-saldo-val" style="color:${saldo>=0?'var(--accent)':'#ff6b2b'}">${fR(saldo)}</div>
             <div class="conta-saldo-lbl">saldo atual</div>
           </div>
-        </div>`;
-      }).join('');
+        </div>
+      </div>`;
     });
+    html+=`</div>`;
   }
+
   el.innerHTML=html;
+  _initDragContas();
+}
+
+function _initDragContas(){
+  const container=g('contasDrag');
+  if(!container) return;
+  let dragging=null, startY=0, clone=null, placeholder=null;
+
+  const cards=()=>[...container.querySelectorAll('.conta-card')];
+
+  function startDrag(card, clientY){
+    dragging=card;
+    const rect=card.getBoundingClientRect();
+    startY=clientY-rect.top;
+
+    placeholder=document.createElement('div');
+    placeholder.style.cssText=`height:${rect.height}px;border:2px dashed #c0d4ee;border-radius:12px;background:#f4f8ff;flex-shrink:0`;
+    card.parentNode.insertBefore(placeholder,card.nextSibling);
+
+    clone=card.cloneNode(true);
+    clone.style.cssText=`position:fixed;left:${rect.left}px;width:${rect.width}px;top:${rect.top}px;z-index:9999;opacity:0.92;box-shadow:0 8px 24px #0002;pointer-events:none;border-radius:12px`;
+    document.body.appendChild(clone);
+    card.style.opacity='0';
+  }
+
+  function moveDrag(clientY){
+    if(!dragging||!clone) return;
+    clone.style.top=(clientY-startY)+'px';
+    const over=cards().find(c=>{
+      if(c===dragging) return false;
+      const r=c.getBoundingClientRect();
+      return clientY>r.top && clientY<r.bottom;
+    });
+    if(over){
+      const r=over.getBoundingClientRect();
+      const mid=r.top+r.height/2;
+      if(clientY<mid) over.parentNode.insertBefore(placeholder,over);
+      else over.parentNode.insertBefore(placeholder,over.nextSibling);
+    }
+  }
+
+  function endDrag(){
+    if(!dragging) return;
+    placeholder.parentNode.insertBefore(dragging,placeholder);
+    placeholder.remove();
+    clone.remove();
+    dragging.style.opacity='';
+    const novaOrdem=cards().map(c=>parseInt(c.dataset.id));
+    S.contas=novaOrdem.map(id=>S.contas.find(c=>c.id===id)).filter(Boolean);
+    dragging=null; clone=null; placeholder=null;
+    sv();
+    renderContas();
+  }
+
+  container.querySelectorAll('.drag-handle').forEach(handle=>{
+    // Touch (celular)
+    handle.addEventListener('touchstart',e=>{
+      e.preventDefault();
+      const card=handle.closest('.conta-card');
+      if(card) startDrag(card, e.touches[0].clientY);
+    },{passive:false});
+    handle.addEventListener('touchmove',e=>{
+      e.preventDefault();
+      moveDrag(e.touches[0].clientY);
+    },{passive:false});
+    handle.addEventListener('touchend',endDrag,{passive:false});
+    handle.addEventListener('touchcancel',endDrag,{passive:false});
+
+    // Mouse (desktop)
+    handle.addEventListener('mousedown',e=>{
+      e.preventDefault();
+      const card=handle.closest('.conta-card');
+      if(!card) return;
+      startDrag(card, e.clientY);
+      const onMove=e=>{ e.preventDefault(); moveDrag(e.clientY); };
+      const onUp=()=>{ endDrag(); document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); };
+      document.addEventListener('mousemove',onMove);
+      document.addEventListener('mouseup',onUp);
+    });
+  });
 }
 
 function voltarContas(){
@@ -1155,7 +1268,7 @@ function abrirContaDetalhe(id){
   const ct=S.contas.find(c=>c.id===id); if(!ct) return;
   contaAtualId=id; mostrarConcDetalhe=false;
   g('viewContas').style.display='none';
-  g('viewContaDetalhe').style.display='';
+  g('viewContaDetalhe').style.display='flex';
   g('bottomnav').style.display='none';
 
   const borda=ct.cor||TIPO_BORDA[normTipo(ct.tipo)]||'#667788';
@@ -1271,7 +1384,7 @@ function abrirEditConta(id){
   eContaId=id;
   g('shContaT').textContent='✏ Editar Conta';
   g('cNome').value=ct.nome; g('cBanco').value=ct.banco||'';
-  g('cSaldoIni').value=ct.saldoIni||0; g('cTipo').value=normTipo(ct.tipo);
+  setMoeda('cSaldoIni',ct.saldoIni||0); g('cTipo').value=normTipo(ct.tipo);
   g('btnDelConta').style.display='';
   buildCorContaPicker(ct.cor||TIPO_BORDA[normTipo(ct.tipo)]||'#0055cc');
   g('shConta').style.display='flex';
@@ -1285,7 +1398,7 @@ function salvarConta(){
   // pegar cor: primeiro do input color (mais confiável), senão da variável
   const inputCor=g('cCorPersonalizada');
   const corFinal = inputCor ? inputCor.value : corContaSel;
-  const ct={nome, tipo:g('cTipo').value, banco:g('cBanco').value.trim(), saldoIni:parseFloat(g('cSaldoIni').value)||0, cor:corFinal};
+  const ct={nome, tipo:g('cTipo').value, banco:g('cBanco').value.trim(), saldoIni:lerMoeda('cSaldoIni'), cor:corFinal};
   if(eContaId){
     S.contas=S.contas.map(c=>c.id===eContaId?{...ct,id:eContaId}:c);
   } else {
@@ -1362,6 +1475,8 @@ if(document.readyState==='loading'){
 }
 function _init(){
   _carregarDados();
+  // Aplicar máscara de moeda em todos os campos de valor
+  ['fValor','fValorT','cSaldoIni'].forEach(id=>{ const el=g(id); if(el) mascaraMoeda(el); });
   setAba('c');
 }
 </script>
