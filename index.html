@@ -148,7 +148,7 @@ input[type=date]::-webkit-calendar-picker-indicator{filter:none;opacity:.6}
 input[type=color]{width:44px;height:44px;border:1px solid #c0d4ee;border-radius:8px;cursor:pointer;padding:3px;background:none}
 
 /* CONTAS */
-.conta-card{background:#f4f8ff;border:1px solid #c0d4ee;border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px #0000000a}
+.conta-card{background:#f4f8ff;border:1px solid #c0d4ee;border-radius:12px;padding:8px 12px;margin-bottom:4px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .2s;box-shadow:0 1px 4px #0000000a}
 .conta-card:active{background:#e8f0fa}
 .conta-ico{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .conta-info{flex:1;min-width:0}
@@ -1147,7 +1147,7 @@ function renderContas(){
   if(!S.contas.length){
     html+='<div class="empty-contas">Nenhuma conta cadastrada.<br>Toque em <b style="color:var(--accent)">+ Nova Conta</b> para começar.</div>';
   } else {
-    html+=`<div id="contasDrag" style="display:flex;flex-direction:column;gap:8px">`;
+    html+=`<div id="contasDrag" style="display:flex;flex-direction:column;gap:4px">`;
     S.contas.forEach((ct,idx)=>{
       const ehPrincipal=idx===0;
       const saldo=S.lanc
@@ -1293,6 +1293,25 @@ function abrirNovoNaConta(){
   g('shL').dataset.contaId=contaAtualId||'';
 }
 
+function _mesAno(dataStr){
+  const [ano,mes] = dataStr.split('-');
+  const nomes=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return nomes[parseInt(mes,10)-1]+', '+ano;
+}
+function _comSeparadores(lista, c){
+  if(!lista.length) return '';
+  let html='', mesAtual='';
+  lista.forEach(l=>{
+    const ma=_mesAno(l.data);
+    if(ma!==mesAtual){
+      mesAtual=ma;
+      html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;padding:10px 4px 4px;border-bottom:1px solid var(--border);margin-bottom:4px">${ma}</div>`;
+    }
+    html+=renderItem(l,c);
+  });
+  return html;
+}
+
 function renderDetalhe(){
   if(!contaAtualId) return;
   const c=cm();
@@ -1316,7 +1335,7 @@ function renderDetalhe(){
   const conciliados=lancs.filter(l=>l.conciliado);
 
   g('dListaL').innerHTML=pendentes.length
-    ? pendentes.map(l=>renderItem(l,c)).join('')
+    ? _comSeparadores(pendentes, c)
     : '<div class="empty">Nenhum lançamento pendente nesta conta.</div>';
 
   const btn=g('dBtnVerConc');
@@ -1326,7 +1345,7 @@ function renderDetalhe(){
   g('dBtnVCTxt').textContent=mostrarConcDetalhe?'Ocultar conciliados':'Exibir conciliados';
   btn.querySelector('.btn-verconc-ico').textContent=mostrarConcDetalhe?'🔓':'🔒';
   g('dAreaConc').style.display=(mostrarConcDetalhe&&conciliados.length)?'':'none';
-  g('dListaConcL').innerHTML=conciliados.map(l=>renderItem(l,c)).join('');
+  g('dListaConcL').innerHTML=_comSeparadores(conciliados, c);
 }
 
 function toggleConcDetalhe(){mostrarConcDetalhe=!mostrarConcDetalhe;renderDetalhe();}
@@ -1475,6 +1494,8 @@ if(document.readyState==='loading'){
   _init();
 }
 function _init(){
+  // Reset único: apaga dados antigos de teste (remover esta linha após confirmar estado limpo)
+  if(!localStorage.getItem('gf_v2')){ localStorage.removeItem('gf_data'); localStorage.setItem('gf_v2','1'); }
   _carregarDados();
   // Aplicar máscara de moeda em todos os campos de valor
   ['fValor','fValorT','cSaldoIni'].forEach(id=>{ const el=g(id); if(el) mascaraMoeda(el); });
