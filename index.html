@@ -398,6 +398,7 @@ body{background:#d0d8e8;margin:0;padding:0;}
   <button class="bn on" id="bnC" onclick="setAba('c')"><span class="bn-ico">🏦</span>Contas</button>
   <button class="bn" id="bnG" onclick="setAba('g')"><span class="bn-ico">📊</span>Relatório</button>
   <button class="bn" onclick="abrirNovaConta()" style="color:var(--accent)"><span class="bn-ico">＋</span>Nova Conta</button>
+  <button class="bn" onclick="abrirBackup()" style="color:var(--muted)"><span class="bn-ico">💾</span>Backup</button>
 </div>
 
 </div><!-- /app -->
@@ -504,6 +505,22 @@ body{background:#d0d8e8;margin:0;padding:0;}
       <button class="bok" style="padding:12px 16px;border-radius:8px;flex-shrink:0" onclick="addCat()">+</button>
     </div>
     <div class="fbtns" style="margin-top:14px"><button class="bok" onclick="fshC()">Fechar</button></div>
+  </div>
+</div>
+
+<!-- SHEET BACKUP -->
+<div class="overlay" id="shBackup" style="display:none" onclick="if(event.target===this)fshBackup()">
+  <div class="sheet">
+    <div class="shandle"></div>
+    <div class="stitle">💾 Backup dos Dados</div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">Exporte um arquivo JSON para guardar seus dados em segurança, ou importe um backup salvo anteriormente.</p>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="bok" onclick="exportarDados()" style="background:linear-gradient(135deg,#008822,#005511)">⬇ Exportar backup (JSON)</button>
+      <button class="bok" onclick="g('inputImport').click()" style="background:linear-gradient(135deg,#cc8800,#995500)">⬆ Importar backup</button>
+      <input type="file" id="inputImport" accept=".json" style="display:none" onchange="importarDados(this)"/>
+    </div>
+    <p id="backupMsg" style="font-size:11px;margin-top:12px;color:var(--accent);display:none"></p>
+    <div class="fbtns" style="margin-top:14px"><button class="bno" onclick="fshBackup()">Fechar</button></div>
   </div>
 </div>
 
@@ -1492,6 +1509,51 @@ if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', _init);
 } else {
   _init();
+}
+
+// ── BACKUP / RESTORE ──
+function abrirBackup(){
+  const el=g('backupMsg'); if(el){el.style.display='none'; el.textContent='';}
+  g('shBackup').style.display='flex';
+}
+function fshBackup(){ g('shBackup').style.display='none'; }
+
+function exportarDados(){
+  try{
+    const raw=localStorage.getItem('gf_data');
+    if(!raw){alert('Nenhum dado para exportar.');return;}
+    const blob=new Blob([raw],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const hoje=new Date().toISOString().slice(0,10);
+    a.href=url; a.download='backup-financeiro-'+hoje+'.json';
+    a.click(); URL.revokeObjectURL(url);
+    const msg=g('backupMsg');
+    msg.textContent='✅ Backup exportado com sucesso!'; msg.style.display='block';
+  }catch(e){alert('Erro ao exportar: '+e.message);}
+}
+
+function importarDados(input){
+  const file=input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const d=JSON.parse(e.target.result);
+      if(!d.lanc||!d.cats||!d.contas){
+        alert('Arquivo inválido. Verifique se é um backup gerado por este app.');return;
+      }
+      if(!confirm('Restaurar este backup irá SUBSTITUIR todos os dados atuais. Confirma?')){
+        input.value='';return;
+      }
+      localStorage.setItem('gf_data',e.target.result);
+      _carregarDados();
+      setAba(aba);
+      const msg=g('backupMsg');
+      msg.textContent='✅ Dados restaurados com sucesso!'; msg.style.display='block';
+    }catch(err){ alert('Erro ao importar: '+err.message); }
+    input.value='';
+  };
+  reader.readAsText(file);
 }
 function _init(){
   // Reset único: apaga dados antigos de teste (remover esta linha após confirmar estado limpo)
