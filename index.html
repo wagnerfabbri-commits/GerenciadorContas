@@ -163,13 +163,13 @@ input[type=color]{width:44px;height:44px;border:1px solid #c0d4ee;border-radius:
 .cor-opt.sel{border-color:#0055cc!important;transform:scale(1.15)}
 .empty-contas{text-align:center;padding:48px 20px;color:var(--dim);font-size:11px}
 .contas-secao{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:10px 2px 6px;border-top:1px solid #e0eaf5;margin-top:4px;margin-bottom:4px}
-.sug-item{padding:11px 14px;font-size:11px;color:var(--text);cursor:pointer;border-bottom:1px solid #e8f0fa;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.sug-item{padding:11px 14px;font-size:11px;color:#1a2a3a;background:#ffffff;cursor:pointer;border-bottom:1px solid #e8f0fa;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .sug-item:last-child{border-bottom:none}
-.sug-item.ativo{background:#e8f4ff}
+.sug-item.ativo{background:#e8f4ff;color:#003a99}
 .sug-item:active{background:#ddeeff}
-.sug-desc{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sug-meta{font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
-.sug-highlight{color:var(--accent);font-weight:700}
+.sug-desc{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a2a3a}
+.sug-meta{font-size:11px;color:#5580aa;white-space:nowrap;flex-shrink:0}
+.sug-highlight{color:#0055cc;font-weight:700}
 </style>
 <!-- Estilo inline de emergência para evitar tela branca no iOS -->
 <style>
@@ -546,7 +546,7 @@ let contaAtualId=null, mostrarConcDetalhe=false;
 const g  = id => document.getElementById(id);
 const fR = v  => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const fD = d  => new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
-const hj = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
+const hj = () => new Date().toISOString().slice(0,10);
 const cm = () => Object.fromEntries(S.cats.map(c=>[c.id,c]));
 
 function fl(){
