@@ -428,7 +428,7 @@ body{background:#d0d8e8;margin:0;padding:0;}
       <div class="frow" style="position:relative">
         <label class="flbl">DESCRIÇÃO *</label>
         <input type="text" id="fDesc" class="finp" placeholder="Ex: Supermercado, Salário…" autocomplete="off" oninput="sugerirDesc(this.value)" onkeydown="navSugestao(event)"/>
-        <div id="sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;background:#0d0000;border:1.5px solid #cc0000;border-radius:0 0 10px 10px;z-index:300;overflow:hidden;box-shadow:0 8px 24px #00000060"></div>
+        <div id="sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;background:#ffffff;border:1.5px solid #c0d4ee;border-radius:0 0 10px 10px;z-index:300;overflow:hidden;box-shadow:0 8px 24px #0055cc18"></div>
       </div>
       <div class="frow">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -546,7 +546,7 @@ let contaAtualId=null, mostrarConcDetalhe=false;
 const g  = id => document.getElementById(id);
 const fR = v  => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const fD = d  => new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
-const hj = () => new Date().toISOString().slice(0,10);
+const hj = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const cm = () => Object.fromEntries(S.cats.map(c=>[c.id,c]));
 
 function fl(){
