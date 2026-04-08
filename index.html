@@ -1504,6 +1504,29 @@ function _carregarDados(){
   }catch(e){console.error('carregar erro:',e);}
 }
 
+// ── SOM DE CLIQUE ──
+(function(){
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  function tec(){
+    try{
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'square';
+      o.frequency.setValueAtTime(2000, ctx.currentTime);
+      o.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.04);
+      g.gain.setValueAtTime(0.03, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 0.04);
+    }catch(e){}
+  }
+  document.addEventListener('pointerdown', function(e){
+    if(e.target.closest('button, select, input[type=date], .htab, .bn, .bconc, .bed, .btn-verconc, .tbtn, .cor-opt, .sug-item, .conta-card'))
+      tec();
+  }, {passive:true});
+})();
+
 // Inicializar app
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', _init);
