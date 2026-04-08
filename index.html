@@ -1522,7 +1522,12 @@ function _carregarDados(){
       o.stop(ctx.currentTime + 0.04);
     }catch(e){}
   }
+  let _scrolling = false, _scrollTimer;
+  document.addEventListener('scroll', function(){ _scrolling = true; clearTimeout(_scrollTimer); _scrollTimer = setTimeout(()=>{ _scrolling = false; }, 200); }, {passive:true, capture:true});
+  document.addEventListener('touchmove', function(){ _scrolling = true; clearTimeout(_scrollTimer); _scrollTimer = setTimeout(()=>{ _scrolling = false; }, 200); }, {passive:true});
+
   document.addEventListener('pointerdown', function(e){
+    if(_scrolling) return;
     if(e.target.closest('button, select, input[type=date], .htab, .bn, .bconc, .bed, .btn-verconc, .tbtn, .cor-opt, .sug-item, .conta-card'))
       tec();
   }, {passive:true});
