@@ -1509,6 +1509,7 @@ function _carregarDados(){
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   function tec(){
     try{
+      if(ctx.state === 'suspended') ctx.resume();
       const o = ctx.createOscillator();
       const g = ctx.createGain();
       o.connect(g); g.connect(ctx.destination);
