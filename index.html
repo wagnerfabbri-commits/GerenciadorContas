@@ -550,7 +550,7 @@ const hj = () => new Date().toISOString().slice(0,10);
 const cm = () => Object.fromEntries(S.cats.map(c=>[c.id,c]));
 
 function fl(){
-  return S.lanc.slice().sort((a,b)=>b.data.localeCompare(a.data)||a.id-b.id);
+  return S.lanc.slice().sort((a,b)=>b.data.localeCompare(a.data)||b.id-a.id);
 }
 
 function setAba(a){
@@ -709,7 +709,7 @@ function gerarRelLanc(){
     lancs=lancs.filter(l=>l.data>=de&&l.data<=ate);
   }
 
-  lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||a.id-b.id);
+  lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||b.id-a.id);
   const saldoIni=ct.saldoIni||0;
   const c=cm();
 
@@ -760,7 +760,7 @@ function imprimirRelLanc(){
     const de=g('relLancDe').value, ate=g('relLancAte').value;
     lancs=lancs.filter(l=>l.data>=de&&l.data<=ate);
   }
-  lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||a.id-b.id);
+  lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||b.id-a.id);
   const saldoIni=ct.saldoIni||0;
   const c=cm();
   const periodo=modoRelLanc==='todos'?'Todos os Tempos':fD(g('relLancDe').value+' a '+g('relLancAte').value);
@@ -1380,7 +1380,7 @@ function renderDetalhe(){
   const ct=S.contas.find(x=>x.id===contaAtualId);
   const saldoIni=ct?.saldoIni||0;
   const ehPrincipal = contaAtualId === S.contas[0]?.id;
-  const lancs=S.lanc.filter(l=> l.conta===contaAtualId || (ehPrincipal && !l.conta)).sort((a,b)=>b.data.localeCompare(a.data)||a.id-b.id);
+  const lancs=S.lanc.filter(l=> l.conta===contaAtualId || (ehPrincipal && !l.conta)).sort((a,b)=>b.data.localeCompare(a.data)||b.id-a.id);
 
   // saldo da conta = saldoIni + TODOS os lançamentos
   const saldo=lancs.reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, saldoIni);
