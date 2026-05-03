@@ -1092,16 +1092,25 @@ function fshL(){
 function delDoSheet(){
   if(!eId) return;
   const l=S.lanc.find(x=>x.id===eId);
-  if(ehTransferencia(l)){
-    const pair=findPair(l);
-    const ids=[eId];
-    if(pair) ids.push(pair.id);
-    S.lanc=S.lanc.filter(x=>!ids.includes(x.id));
-  } else {
-    S.lanc=S.lanc.filter(l=>l.id!==eId);
-  }
-  eId=null; sv(); fshL();
-  if(contaAtualId) renderDetalhe(); else render();
+  const nome=l?`"${l.descricao}"`:'este lançamento';
+  const msg=ehTransferencia(l)
+    ? `Deseja excluir a transferência ${nome}?\n\nOs dois lados (enviado e recebido) serão removidos.`
+    : `Deseja excluir o lançamento ${nome}?`;
+  g('shConfirmMsg').textContent=msg;
+  g('shConfirm').style.display='flex';
+  g('shConfirmOk').onclick=function(){
+    g('shConfirm').style.display='none';
+    if(ehTransferencia(l)){
+      const pair=findPair(l);
+      const ids=[eId];
+      if(pair) ids.push(pair.id);
+      S.lanc=S.lanc.filter(x=>!ids.includes(x.id));
+    } else {
+      S.lanc=S.lanc.filter(x=>x.id!==eId);
+    }
+    eId=null; sv(); fshL();
+    if(contaAtualId) renderDetalhe(); else render();
+  };
 }
 function salvar(){
   const tipo=g('fTipo').value;
@@ -1643,5 +1652,16 @@ function _init(){
   setAba('c');
 }
 </script>
+<!-- Modal de confirmação de exclusão -->
+<div class="overlay" id="shConfirm" style="display:none">
+  <div class="sheet" style="max-height:unset;padding:20px 18px 24px">
+    <div style="font-size:18px;font-weight:700;color:#cc2200;margin-bottom:10px">🗑 Excluir lançamento</div>
+    <div id="shConfirmMsg" style="font-size:14px;color:#333;line-height:1.5;margin-bottom:18px"></div>
+    <div class="fbtns">
+      <button class="bno" onclick="g('shConfirm').style.display='none'">Cancelar</button>
+      <button class="bdel-sheet" id="shConfirmOk" style="flex:1">Confirmar exclusão</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
