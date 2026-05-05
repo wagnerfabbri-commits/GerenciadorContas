@@ -770,6 +770,29 @@ function gerarRelLanc(){
   g('btnImprimirLancBox').style.display=lancs.length?'block':'none';
 }
 
+function _abrirJanelaImpressao(html){
+  const w=window.open('','_blank','width=900,height=700');
+  if(!w){ alert('O navegador bloqueou a abertura da janela. Permita pop-ups para este site e tente novamente.'); return; }
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impressão</title><style>
+    @page{margin:15mm} body{margin:0;padding:20px;font-family:Arial,sans-serif;font-size:11pt;color:#000;background:#fff}
+    .print-titulo{font-size:16pt;font-weight:bold;color:#0055cc;margin-bottom:4px}
+    .print-subtitulo{font-size:10pt;color:#555;margin-bottom:16px;border-bottom:2px solid #0055cc;padding-bottom:8px}
+    .print-secao{font-size:10pt;font-weight:bold;color:#0055cc;text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px}
+    .print-linha{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e0e0e0;font-size:11pt}
+    .print-linha:last-child{border-bottom:none}
+    .print-barra-wrap{background:#eee;border-radius:4px;height:8px;margin-top:4px;overflow:hidden}
+    .print-barra-fill{height:100%;border-radius:4px}
+    .print-total{font-weight:bold;font-size:12pt;border-top:2px solid #0055cc;padding-top:8px;margin-top:4px}
+    table{width:100%;border-collapse:collapse;margin-bottom:14px}
+    .btn-imprimir{display:block;margin:0 auto 20px;padding:10px 32px;background:#0055cc;color:#fff;border:none;border-radius:8px;font-size:13pt;cursor:pointer;font-family:Arial,sans-serif}
+    @media print{.btn-imprimir{display:none}}
+  </style></head><body>
+  <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+  ${html}
+  </body></html>`);
+  w.document.close();
+}
+
 function imprimirRelLanc(){
   const contaId=parseInt(g('relConta').value);
   const ct=S.contas.find(c=>c.id===contaId); if(!ct) return;
@@ -782,7 +805,7 @@ function imprimirRelLanc(){
   lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||b.id-a.id);
   const saldoIni=ct.saldoIni||0;
   const c=cm();
-  const periodo=modoRelLanc==='todos'?'Todos os Tempos':fD(g('relLancDe').value+' a '+g('relLancAte').value);
+  const periodo=modoRelLanc==='todos'?'Todos os Tempos':fD(g('relLancDe').value)+' a '+fD(g('relLancAte').value);
 
   let saldoAcc=saldoIni;
   const linhas=lancs.map(l=>{
@@ -801,30 +824,23 @@ function imprimirRelLanc(){
   const db=lancs.filter(l=>l.tipo==='D').reduce((s,l)=>s+l.valor,0);
   const sf=saldoIni+cr-db;
 
-  const area=g('areaImpressao');
-  area.style.display='block';
-  area.innerHTML=
+  _abrirJanelaImpressao(
     '<div class="print-titulo">GERENCIADOR FINANCEIRO</div>'
     +'<div class="print-subtitulo">Extrato: '+ct.nome+' — '+periodo+'<br>'
     +'Gerado em: '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>'
-    +'<table style="width:100%;border-collapse:collapse;margin-bottom:14px">'
-    +'<thead><tr style="background:#0055cc;color:#fff">'
+    +'<table><thead><tr style="background:#0055cc;color:#fff">'
     +'<th style="padding:6px 8px;text-align:left;font-size:10pt">Data</th>'
     +'<th style="padding:6px 8px;text-align:left;font-size:10pt">Descrição</th>'
     +'<th style="padding:6px 8px;text-align:right;font-size:10pt">Valor</th>'
     +'<th style="padding:6px 8px;text-align:right;font-size:10pt">Saldo</th>'
     +'<th style="padding:6px 8px;text-align:center;font-size:10pt">Conc.</th>'
-    +'</tr></thead>'
-    +'<tbody>'+linhas+'</tbody>'
-    +'</table>'
+    +'</tr></thead><tbody>'+linhas+'</tbody></table>'
     +'<div class="print-secao">Resumo</div>'
     +'<div class="print-linha"><span>Saldo Inicial</span><span>'+fR(saldoIni)+'</span></div>'
     +'<div class="print-linha"><span>Entradas</span><span style="color:#0055cc">'+fR(cr)+'</span></div>'
     +'<div class="print-linha"><span>Saídas</span><span style="color:#cc2200">'+fR(db)+'</span></div>'
-    +'<div class="print-linha print-total"><span>Saldo Final</span><span style="color:'+(sf>=0?'#0055cc':'#cc2200')+'">'+fR(sf)+'</span></div>';
-
-  window.print();
-  setTimeout(()=>{ area.style.display='none'; area.innerHTML=''; }, 500);
+    +'<div class="print-linha print-total"><span>Saldo Final</span><span style="color:'+(sf>=0?'#0055cc':'#cc2200')+'">'+fR(sf)+'</span></div>'
+  );
 }
 
 let modoRel='periodo';
@@ -941,9 +957,7 @@ function imprimirRelatorio(){
         : '').join('')
     : '<p style="color:#888">Sem despesas no período.</p>';
 
-  const area=g('areaImpressao');
-  area.style.display='block';
-  area.innerHTML=
+  _abrirJanelaImpressao(
     '<div class="print-titulo">GERENCIADOR FINANCEIRO</div>'
     +'<div class="print-subtitulo">Relatório de Gastos por Categoria — '+periodo+'<br>'
     +'Gerado em: '+new Date().toLocaleDateString('pt-BR')+' às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'</div>'
@@ -955,10 +969,8 @@ function imprimirRelatorio(){
     +'<div class="print-linha"><span>Saídas</span><span style="color:#cc2200">'+fR(db)+'</span></div>'
     +'<div class="print-linha print-total"><span>Resultado Líquido</span><span style="color:'+(rs>=0?'#0055cc':'#cc2200')+'">'+fR(rs)+'</span></div>'
     +'<div class="print-linha"><span>Conciliados</span><span>'+conc+' lançamentos</span></div>'
-    +'<div class="print-linha"><span>Pendentes</span><span>'+(lancs.length-conc)+' lançamentos</span></div>';
-
-  window.print();
-  setTimeout(()=>{ area.style.display='none'; area.innerHTML=''; }, 500);
+    +'<div class="print-linha"><span>Pendentes</span><span>'+(lancs.length-conc)+' lançamentos</span></div>'
+  );
 }
 
 function conc(id){
