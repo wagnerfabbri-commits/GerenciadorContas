@@ -189,14 +189,22 @@ body{background:#d0d8e8;margin:0;padding:0;}
 @keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
 @media print {
-  body * { visibility: hidden; }
-  #areaImpressao, #areaImpressao * { visibility: visible; }
+  @page { margin: 15mm; }
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body > * { display: none !important; }
   #areaImpressao {
-    position: fixed; inset: 0;
-    background: #fff; color: #000;
-    font-family: Arial, sans-serif; font-size: 11pt;
-    padding: 20px; z-index: 9999;
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    background: #fff;
+    color: #000;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    padding: 0;
+    margin: 0;
+    z-index: auto;
   }
+  #areaImpressao * { visibility: visible !important; }
   .print-titulo { font-size: 16pt; font-weight: bold; color: #0055cc; margin-bottom: 4px; }
   .print-subtitulo { font-size: 10pt; color: #555; margin-bottom: 16px; border-bottom: 2px solid #0055cc; padding-bottom: 8px; }
   .print-secao { font-size: 10pt; font-weight: bold; color: #0055cc; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 6px; }
@@ -369,25 +377,26 @@ body{background:#d0d8e8;margin:0;padding:0;}
         </button>
       </div>
 
-      <!-- rodapé fixo: saldo atual | + | saldo a conciliar -->
-      <div style="flex-shrink:0;display:flex;align-items:center;gap:0;border-top:1px solid var(--border);background:var(--bg);padding:6px 8px 6px 8px;margin-top:4px;border-radius:0 0 12px 12px">
-        <!-- saldo atual -->
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
-          <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">💰 Saldo Atual</div>
+      <!-- rodapé fixo: + | saldo alternável -->
+      <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-around;border-top:1px solid var(--border);background:var(--bg);padding:8px 16px 8px 16px;margin-top:4px;border-radius:0 0 12px 12px">
+        <!-- botão + -->
+        <div style="flex:1;display:flex;align-items:center;justify-content:center">
+          <button onclick="abrirNovoNaConta()" style="width:44px;height:44px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:26px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0055cc44;line-height:1">+</button>
+        </div>
+        <!-- saldo alternável -->
+        <div id="dSaldoToggleBox" onclick="toggleSaldo()" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer;user-select:none">
+          <div id="dSaldoLabel" style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">💰 Saldo Atual</div>
           <div class="c-val" id="dSaldo" style="font-size:12px;font-weight:700">R$0</div>
           <div class="c-sub" id="dSaldoSub" style="font-size:9px;text-align:center"></div>
-        </div>
-        <!-- botão + central -->
-        <div style="flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0 8px">
-          <button onclick="abrirNovoNaConta()" style="width:40px;height:40px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:24px;font-weight:300;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0055cc44;line-height:1">+</button>
-        </div>
-        <!-- saldo a conciliar -->
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px">
-          <div style="font-size:9px;font-weight:700;color:#0055cc;text-transform:uppercase;letter-spacing:.8px">🏦 A Conciliar</div>
-          <div class="c-val" id="dConc" style="font-size:12px;font-weight:700">R$0</div>
-          <div class="c-sub" id="dConcSub" style="font-size:9px;text-align:center"></div>
+          <div id="dSaldoDots" style="display:flex;gap:4px;margin-top:3px">
+            <div id="dot0" style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></div>
+            <div id="dot1" style="width:6px;height:6px;border-radius:50%;background:#ccc"></div>
+          </div>
         </div>
       </div>
+      <!-- dados ocultos do saldo a conciliar -->
+      <div id="dConc" style="display:none">R$0</div>
+      <div id="dConcSub" style="display:none"></div>
     </div>
   </div>
 
@@ -540,6 +549,7 @@ const CONTAS0=[
 
 const S={lanc:[], cats:[...CATS0], contas:[...CONTAS0]};
 let nId=1, eId=null, aba='c', mostrarConc=false;
+let saldoModo=0; // 0=Saldo Atual, 1=A Conciliar
 let eContaId=null, corSel='#f5a800', nContaId=2;
 let contaAtualId=null, mostrarConcDetalhe=false;
 
@@ -1086,6 +1096,36 @@ function abrirEd(id){
   }
   g('shL').style.display='flex';
 }
+function toggleSaldo(){
+  saldoModo = saldoModo===0 ? 1 : 0;
+  const isAtual = saldoModo===0;
+  const label = g('dSaldoLabel');
+  const val   = g('dSaldo');
+  const sub   = g('dSaldoSub');
+  const concVal = g('dConc').textContent;
+  const concSub = g('dConcSub').textContent;
+
+  // guarda os dois valores no dataset
+  if(isAtual){
+    label.textContent='💰 Saldo Atual';
+    label.style.color='var(--muted)';
+    val.textContent  = g('dSaldo').dataset.atual||val.textContent;
+    sub.textContent  = g('dSaldoSub').dataset.atual||'';
+  } else {
+    label.textContent='🏦 A Conciliar';
+    label.style.color='#0055cc';
+    val.textContent  = g('dConc').textContent;
+    sub.textContent  = g('dConcSub').textContent;
+  }
+  g('dot0').style.background = isAtual ? 'var(--accent)' : '#ccc';
+  g('dot1').style.background = isAtual ? '#ccc' : 'var(--accent)';
+
+  // animação rápida
+  const box = g('dSaldoToggleBox');
+  box.style.transition='opacity .15s';
+  box.style.opacity='0';
+  setTimeout(()=>{ box.style.opacity='1'; },150);
+}
 function fshL(){
   g('shL').style.display='none';g('sugestoes').style.display='none';
 }
@@ -1398,9 +1438,24 @@ function renderDetalhe(){
   const nConc=lancs.filter(l=>l.conciliado).length;
 
   g('dSaldo').textContent=fR(saldo); g('dSaldo').style.color=saldo>=0?'#0055cc':'#cc2200';
+  g('dSaldo').dataset.atual=fR(saldo);
   g('dSaldoSub').textContent=`${lancs.length} lançamento${lancs.length!==1?'s':''}`;
+  g('dSaldoSub').dataset.atual=`${lancs.length} lançamento${lancs.length!==1?'s':''}`;
   g('dConc').textContent=fR(sConc); g('dConc').style.color=sConc>=0?'#0055cc':'#cc2200';
   g('dConcSub').textContent=`${lancs.length-nConc} pendente${lancs.length-nConc!==1?'s':''} de conciliação`;
+  // manter modo atual ao re-renderizar
+  if(saldoModo===1){
+    g('dSaldoLabel').textContent='🏦 A Conciliar';
+    g('dSaldoLabel').style.color='#0055cc';
+    g('dSaldo').textContent=fR(sConc);
+    g('dSaldo').style.color=sConc>=0?'#0055cc':'#cc2200';
+    g('dSaldoSub').textContent=`${lancs.length-nConc} pendente${lancs.length-nConc!==1?'s':''} de conciliação`;
+  } else {
+    g('dSaldoLabel').textContent='💰 Saldo Atual';
+    g('dSaldoLabel').style.color='var(--muted)';
+  }
+  g('dot0').style.background = saldoModo===0 ? 'var(--accent)' : '#ccc';
+  g('dot1').style.background = saldoModo===0 ? '#ccc' : 'var(--accent)';
 
   const pendentes=lancs.filter(l=>!l.conciliado);
   const conciliados=lancs.filter(l=>l.conciliado);
