@@ -784,10 +784,15 @@ function _abrirJanelaImpressao(html){
     .print-barra-fill{height:100%;border-radius:4px}
     .print-total{font-weight:bold;font-size:12pt;border-top:2px solid #0055cc;padding-top:8px;margin-top:4px}
     table{width:100%;border-collapse:collapse;margin-bottom:14px}
-    .btn-imprimir{display:block;margin:0 auto 20px;padding:10px 32px;background:#0055cc;color:#fff;border:none;border-radius:8px;font-size:13pt;cursor:pointer;font-family:Arial,sans-serif}
-    @media print{.btn-imprimir{display:none}}
+    .btn-imprimir{display:inline-block;margin:0 8px 20px;padding:10px 32px;background:#0055cc;color:#fff;border:none;border-radius:8px;font-size:13pt;cursor:pointer;font-family:Arial,sans-serif}
+    .btn-fechar{display:inline-block;margin:0 8px 20px;padding:10px 32px;background:#f0f0f0;color:#333;border:none;border-radius:8px;font-size:13pt;cursor:pointer;font-family:Arial,sans-serif}
+    .btn-bar{text-align:center}
+    @media print{.btn-bar{display:none}}
   </style></head><body>
-  <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+  <div class="btn-bar">
+    <button class="btn-fechar" onclick="window.close()">✕ Fechar</button>
+    <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
+  </div>
   ${html}
   </body></html>`);
   w.document.close();
