@@ -940,7 +940,7 @@ function imprimirRelatorio(){
   const cr=lancs.filter(l=>l.tipo==='C').reduce((s,l)=>s+l.valor,0);
   const db=lancs.filter(l=>l.tipo==='D').reduce((s,l)=>s+l.valor,0);
   const rs=cr-db;
-  const conc=lancs.filter(l=>l.conciliado).length;
+  const nConc=lancs.filter(l=>l.conciliado).length;
 
   const map={};
   lancs.filter(l=>l.tipo==='D').forEach(l=>{map[l.categoria]=(map[l.categoria]||0)+l.valor;});
@@ -968,8 +968,8 @@ function imprimirRelatorio(){
     +'<div class="print-linha"><span>Entradas</span><span style="color:#0055cc">'+fR(cr)+'</span></div>'
     +'<div class="print-linha"><span>Saídas</span><span style="color:#cc2200">'+fR(db)+'</span></div>'
     +'<div class="print-linha print-total"><span>Resultado Líquido</span><span style="color:'+(rs>=0?'#0055cc':'#cc2200')+'">'+fR(rs)+'</span></div>'
-    +'<div class="print-linha"><span>Conciliados</span><span>'+conc+' lançamentos</span></div>'
-    +'<div class="print-linha"><span>Pendentes</span><span>'+(lancs.length-conc)+' lançamentos</span></div>'
+    +'<div class="print-linha"><span>Conciliados</span><span>'+nConc+' lançamentos</span></div>'
+    +'<div class="print-linha"><span>Pendentes</span><span>'+(lancs.length-nConc)+' lançamentos</span></div>'
   );
 }
 
