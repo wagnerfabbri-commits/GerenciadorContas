@@ -366,15 +366,24 @@ body{background:#d0d8e8;margin:0;padding:0;}
       <!-- lista de lançamentos (scrollável) -->
       <div style="flex:1;overflow-y:auto;padding-bottom:4px">
         <div id="dListaL" class="lista"></div>
-        <div id="dAreaConc" style="display:none">
-          <div class="sec-label verde">✅ Conciliados</div>
-          <div class="lista" id="dListaConcL"></div>
-        </div>
+
+        <!-- botão Exibir conciliados (quando oculto) -->
         <button class="btn-verconc" id="dBtnVerConc" onclick="toggleConcDetalhe()" style="display:none;margin-top:8px">
           <span class="btn-verconc-ico">🔒</span>
           <span id="dBtnVCTxt">Exibir conciliados</span>
           <span class="btn-verconc-badge" id="dBtnVCBadge">0</span>
         </button>
+
+        <!-- área conciliados: botão Ocultar no topo + lista -->
+        <div id="dAreaConc" style="display:none">
+          <button class="btn-verconc" onclick="toggleConcDetalhe()" style="margin-top:8px;margin-bottom:4px">
+            <span class="btn-verconc-ico">🔓</span>
+            <span>Ocultar conciliados</span>
+            <span class="btn-verconc-badge" id="dBtnVCBadge2">0</span>
+          </button>
+          <div class="sec-label verde">✅ Conciliados</div>
+          <div class="lista" id="dListaConcL"></div>
+        </div>
       </div>
 
       <!-- rodapé fixo: + | saldo alternável -->
@@ -1466,10 +1475,8 @@ function renderDetalhe(){
 
   const btn=g('dBtnVerConc');
   g('dBtnVCBadge').textContent=conciliados.length;
-  btn.style.display=conciliados.length?'flex':'none';
-  btn.classList.toggle('vis',mostrarConcDetalhe);
-  g('dBtnVCTxt').textContent=mostrarConcDetalhe?'Ocultar conciliados':'Exibir conciliados';
-  btn.querySelector('.btn-verconc-ico').textContent=mostrarConcDetalhe?'🔓':'🔒';
+  if(g('dBtnVCBadge2')) g('dBtnVCBadge2').textContent=conciliados.length;
+  btn.style.display=(!mostrarConcDetalhe&&conciliados.length)?'flex':'none';
   g('dAreaConc').style.display=(mostrarConcDetalhe&&conciliados.length)?'':'none';
   g('dListaConcL').innerHTML=_comSeparadores(conciliados, c);
 }
