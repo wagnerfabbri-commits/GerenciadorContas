@@ -650,16 +650,32 @@ function duplicarLanc(id){
   // Abre o form preenchido com os dados do lançamento, mas como NOVO (eId=null)
   eId=null;
   g('shLT').textContent='⧉ Duplicar Lançamento';
-  g('fData').value=hj(); // data de hoje
-  setTipo(l.tipo);
-  g('fDesc').value=l.descricao;
-  g('fValor').value=String(l.valor).replace('.',',');
-  g('fObs').value=l.obs||'';
   g('sugestoes').style.display='none';
   g('btnDelSheet').style.display='none';
   g('shL').dataset.contaId=l.conta||'';
-  fillCat(); g('fCat').value=l.categoria;
-  fillContaDR(); if(l.conta) g('fContaDR').value=l.conta;
+
+  if(ehTransferencia(l)){
+    const pair=findPair(l);
+    setTipo('T');
+    fillContaDR();
+    const isEnviada=l.obs==='Transferência enviada';
+    const ori=isEnviada?l.conta:(pair?pair.conta:null);
+    const dest=isEnviada?(pair?pair.conta:null):l.conta;
+    if(ori) g('fContaOri').value=ori;
+    if(dest) g('fContaDest').value=dest;
+    g('fDataT').value=hj(); // data de hoje
+    setMoeda('fValorT',l.valor);
+    g('fDescT').value=l.descricao;
+  } else {
+    g('fData').value=hj(); // data de hoje
+    setTipo(l.tipo);
+    g('fDesc').value=l.descricao;
+    setMoeda('fValor',l.valor);
+    g('fObs').value=l.obs||'';
+    fillCat(); g('fCat').value=l.categoria;
+    fillContaDR(); if(l.conta) g('fContaDR').value=l.conta;
+  }
+
   g('shL').style.display='flex';
 }
 
