@@ -1137,6 +1137,8 @@ function abrirEd(id){
     fillContaDR(); if(l.conta) g('fContaDR').value=l.conta;
   }
   g('shL').style.display='flex'; _focarValor();
+}
+function toggleSaldo(){
   saldoModo = saldoModo===0 ? 1 : 0;
   const isAtual = saldoModo===0;
   const label = g('dSaldoLabel');
