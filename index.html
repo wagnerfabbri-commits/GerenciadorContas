@@ -565,7 +565,7 @@ let contaAtualId=null, mostrarConcDetalhe=false;
 const g  = id => document.getElementById(id);
 const fR = v  => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 const fD = d  => new Date(d+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
-const hj = () => new Date().toISOString().slice(0,10);
+const hj = () => { const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); };
 const cm = () => Object.fromEntries(S.cats.map(c=>[c.id,c]));
 
 function fl(){
@@ -676,7 +676,7 @@ function duplicarLanc(id){
     fillContaDR(); if(l.conta) g('fContaDR').value=l.conta;
   }
 
-  g('shL').style.display='flex';
+  g('shL').style.display='flex'; _focarValor();
 }
 
 function renderL(f,c){
@@ -1100,7 +1100,7 @@ function abrirNovo(){
   fillCat(); fillContaDR();
   // pré-selecionar conta atual se dentro de uma
   if(contaAtualId) g('fContaDR').value=contaAtualId;
-  g('shL').style.display='flex';
+  g('shL').style.display='flex'; _focarValor();
 }
 function ehTransferencia(l){
   return l&&(l.obs==='Transferência enviada'||l.obs==='Transferência recebida');
@@ -1136,9 +1136,7 @@ function abrirEd(id){
     fillCat(); g('fCat').value=l.categoria;
     fillContaDR(); if(l.conta) g('fContaDR').value=l.conta;
   }
-  g('shL').style.display='flex';
-}
-function toggleSaldo(){
+  g('shL').style.display='flex'; _focarValor();
   saldoModo = saldoModo===0 ? 1 : 0;
   const isAtual = saldoModo===0;
   const label = g('dSaldoLabel');
@@ -1168,6 +1166,14 @@ function toggleSaldo(){
   box.style.opacity='0';
   setTimeout(()=>{ box.style.opacity='1'; },150);
 }
+function _focarValor(){
+  setTimeout(function(){
+    const t=g('fTipo').value;
+    const campo=t==='T'?g('fValorT'):g('fValor');
+    if(campo){campo.focus();campo.select();}
+  },120);
+}
+
 function fshL(){
   g('shL').style.display='none';g('sugestoes').style.display='none';
 }
