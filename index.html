@@ -745,8 +745,17 @@ function gerarRelLanc(){
   }
 
   lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||b.id-a.id);
-  const saldoIni=ct.saldoIni||0;
   const c=cm();
+
+  // Calcula o saldo no início do período: saldoIni da conta + lançamentos ANTERIORES à data inicial
+  let todosLancsConta=S.lanc.filter(l=>l.conta===contaId||(ehPrincipal&&!l.conta));
+  let saldoIni=(ct.saldoIni||0);
+  if(modoRelLanc==='periodo'){
+    const de=g('relLancDe').value;
+    saldoIni=todosLancsConta
+      .filter(l=>l.data<de)
+      .reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, ct.saldoIni||0);
+  }
 
   let saldoAcc=saldoIni;
   const rows=lancs.map(l=>{
@@ -768,6 +777,7 @@ function gerarRelLanc(){
   const cr=lancs.filter(l=>l.tipo==='C').reduce((s,l)=>s+l.valor,0);
   const db=lancs.filter(l=>l.tipo==='D').reduce((s,l)=>s+l.valor,0);
   const saldoFinal=saldoIni+cr-db;
+  const lblSaldoIni=modoRelLanc==='periodo'?'SALDO INICIAL':'SALDO ABERTURA';
 
   g('relLancResultado').innerHTML=
     '<div class="rbox" style="margin-bottom:8px">'
@@ -775,6 +785,7 @@ function gerarRelLanc(){
     +'<div style="font-size:11px;font-weight:700;color:#5580aa;text-transform:uppercase;letter-spacing:1px">'+ct.nome+'</div>'
     +'<div style="font-size:10px;color:#5580aa">'+lancs.length+' lançamento'+(lancs.length!==1?'s':'')+'</div>'
     +'</div>'
+    +'<div style="background:#f4f8ff;border-radius:6px;padding:7px;text-align:center;margin-bottom:6px"><div style="font-size:9px;color:#5580aa;font-weight:700">'+lblSaldoIni+'</div><div style="font-size:12px;font-weight:700;color:'+(saldoIni>=0?'#0055cc':'#cc2200')+';font-family:Courier New,monospace">'+fR(saldoIni)+'</div></div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px">'
     +'<div style="background:#e8f4ff;border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:#5580aa;font-weight:700">ENTRADAS</div><div style="font-size:12px;font-weight:700;color:#0055cc;font-family:Courier New,monospace">'+fR(cr)+'</div></div>'
     +'<div style="background:#fff0ee;border-radius:6px;padding:7px;text-align:center"><div style="font-size:9px;color:#5580aa;font-weight:700">SAÍDAS</div><div style="font-size:12px;font-weight:700;color:#cc2200;font-family:Courier New,monospace">'+fR(db)+'</div></div>'
@@ -824,7 +835,12 @@ function imprimirRelLanc(){
     lancs=lancs.filter(l=>l.data>=de&&l.data<=ate);
   }
   lancs=lancs.sort((a,b)=>a.data.localeCompare(b.data)||b.id-a.id);
-  const saldoIni=ct.saldoIni||0;
+  const todosLancsContaImp=S.lanc.filter(l=>l.conta===contaId||(ehPrincipal&&!l.conta));
+  let saldoIni=(ct.saldoIni||0);
+  if(modoRelLanc==='periodo'){
+    const de=g('relLancDe').value;
+    saldoIni=todosLancsContaImp.filter(l=>l.data<de).reduce((s,l)=>l.tipo==='C'?s+l.valor:s-l.valor, ct.saldoIni||0);
+  }
   const c=cm();
   const periodo=modoRelLanc==='todos'?'Todos os Tempos':fD(g('relLancDe').value)+' a '+fD(g('relLancAte').value);
 
