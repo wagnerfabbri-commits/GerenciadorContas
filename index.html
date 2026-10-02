@@ -188,31 +188,42 @@ body{background:#d0d8e8;margin:0;padding:0;}
 <style>
 @keyframes loadbar{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 
+/* Pré-visualização de impressão (na própria página — compatível com iOS) */
+#areaImpressao{font-family:Arial,sans-serif;font-size:13px;color:#000;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 24px) !important}
+#areaImpressao table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.print-bar{position:sticky;bottom:calc(-24px - env(safe-area-inset-bottom,0px));display:flex;gap:10px;justify-content:center;background:#fff;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:16px;border-top:1px solid #e0e0e0;z-index:1}
+.print-bar button{flex:1;max-width:200px;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
+.print-btn-ok{background:#0055cc;color:#fff}
+.print-btn-no{background:#eef2f8;color:#333}
+.print-titulo{font-size:16pt;font-weight:bold;color:#0055cc;margin-bottom:4px}
+.print-subtitulo{font-size:10pt;color:#555;margin-bottom:16px;border-bottom:2px solid #0055cc;padding-bottom:8px}
+.print-secao{font-size:10pt;font-weight:bold;color:#0055cc;text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px}
+.print-linha{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #e0e0e0;font-size:11pt}
+.print-linha:last-child{border-bottom:none}
+.print-barra-wrap{background:#eee;border-radius:4px;height:8px;margin-top:4px;overflow:hidden}
+.print-barra-fill{height:100%;border-radius:4px}
+.print-total{font-weight:bold;font-size:12pt;border-top:2px solid #0055cc;padding-top:8px;margin-top:4px}
+
 @media print {
   @page { margin: 15mm; }
-  html, body { margin: 0; padding: 0; background: #fff; }
+  html, body { margin: 0; padding: 0; background: #fff; height: auto !important; overflow: visible !important; }
   body > * { display: none !important; }
   #areaImpressao {
     display: block !important;
     position: static !important;
+    inset: auto !important;
     width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
     background: #fff;
     color: #000;
-    font-family: Arial, sans-serif;
     font-size: 11pt;
-    padding: 0;
+    padding: 0 !important;
     margin: 0;
     z-index: auto;
   }
-  #areaImpressao * { visibility: visible !important; }
-  .print-titulo { font-size: 16pt; font-weight: bold; color: #0055cc; margin-bottom: 4px; }
-  .print-subtitulo { font-size: 10pt; color: #555; margin-bottom: 16px; border-bottom: 2px solid #0055cc; padding-bottom: 8px; }
-  .print-secao { font-size: 10pt; font-weight: bold; color: #0055cc; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 6px; }
-  .print-linha { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #e0e0e0; font-size: 11pt; }
-  .print-linha:last-child { border-bottom: none; }
-  .print-barra-wrap { background: #eee; border-radius: 4px; height: 8px; margin-top: 4px; overflow: hidden; }
-  .print-barra-fill { height: 100%; border-radius: 4px; }
-  .print-total { font-weight: bold; font-size: 12pt; border-top: 2px solid #0055cc; padding-top: 8px; margin-top: 4px; }
+  #areaImpressao .print-bar { display: none !important; }
+  #areaImpressao * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>
 
@@ -798,31 +809,30 @@ function gerarRelLanc(){
 }
 
 function _abrirJanelaImpressao(html){
-  const w=window.open('','_blank','width=900,height=700');
-  if(!w){ alert('O navegador bloqueou a abertura da janela. Permita pop-ups para este site e tente novamente.'); return; }
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Impressão</title><style>
-    @page{margin:15mm} body{margin:0;padding:20px;font-family:Arial,sans-serif;font-size:11pt;color:#000;background:#fff}
-    .print-titulo{font-size:16pt;font-weight:bold;color:#0055cc;margin-bottom:4px}
-    .print-subtitulo{font-size:10pt;color:#555;margin-bottom:16px;border-bottom:2px solid #0055cc;padding-bottom:8px}
-    .print-secao{font-size:10pt;font-weight:bold;color:#0055cc;text-transform:uppercase;letter-spacing:1px;margin:14px 0 6px}
-    .print-linha{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e0e0e0;font-size:11pt}
-    .print-linha:last-child{border-bottom:none}
-    .print-barra-wrap{background:#eee;border-radius:4px;height:8px;margin-top:4px;overflow:hidden}
-    .print-barra-fill{height:100%;border-radius:4px}
-    .print-total{font-weight:bold;font-size:12pt;border-top:2px solid #0055cc;padding-top:8px;margin-top:4px}
-    table{width:100%;border-collapse:collapse;margin-bottom:14px}
-    .btn-imprimir{display:inline-block;margin:0 8px 20px;padding:10px 32px;background:#0055cc;color:#fff;border:none;border-radius:8px;font-size:13pt;cursor:pointer;font-family:Arial,sans-serif}
-    .btn-fechar{display:inline-block;margin:0 8px 20px;padding:10px 32px;background:#f0f0f0;color:#333;border:none;border-radius:8px;font-size:13pt;cursor:pointer;font-family:Arial,sans-serif}
-    .btn-bar{text-align:center}
-    @media print{.btn-bar{display:none}}
-  </style></head><body>
-  <div class="btn-bar">
-    <button class="btn-fechar" onclick="window.close()">✕ Fechar</button>
-    <button class="btn-imprimir" onclick="window.print()">🖨️ Imprimir</button>
-  </div>
-  ${html}
-  </body></html>`);
-  w.document.close();
+  // Pré-visualização na própria página (o iOS bloqueia janelas novas / window.open)
+  const area=g('areaImpressao');
+  area.innerHTML=html
+    +'<div class="print-bar">'
+    +'<button type="button" class="print-btn-no" onclick="fecharImpressao()">✕ Fechar</button>'
+    +'<button type="button" class="print-btn-ok" onclick="dispararImpressao()">🖨️ Imprimir</button>'
+    +'</div>';
+  area.style.display='block';
+  area.scrollTop=0;
+}
+
+function fecharImpressao(){
+  const area=g('areaImpressao');
+  area.style.display='none';
+  area.innerHTML='';
+}
+
+function dispararImpressao(){
+  try{
+    if(typeof window.print!=='function') throw new Error('sem suporte');
+    window.print();
+  }catch(e){
+    alert('Este modo do app não permitiu abrir a impressão. Abra o app pelo Safari e tente de novo, ou use Compartilhar › Imprimir.');
+  }
 }
 
 function imprimirRelLanc(){
@@ -1156,27 +1166,7 @@ function abrirEd(id){
 }
 function toggleSaldo(){
   saldoModo = saldoModo===0 ? 1 : 0;
-  const isAtual = saldoModo===0;
-  const label = g('dSaldoLabel');
-  const val   = g('dSaldo');
-  const sub   = g('dSaldoSub');
-  const concVal = g('dConc').textContent;
-  const concSub = g('dConcSub').textContent;
-
-  // guarda os dois valores no dataset
-  if(isAtual){
-    label.textContent='💰 Saldo Atual';
-    label.style.color='var(--muted)';
-    val.textContent  = g('dSaldo').dataset.atual||val.textContent;
-    sub.textContent  = g('dSaldoSub').dataset.atual||'';
-  } else {
-    label.textContent='🏦 A Conciliar';
-    label.style.color='#0055cc';
-    val.textContent  = g('dConc').textContent;
-    sub.textContent  = g('dConcSub').textContent;
-  }
-  g('dot0').style.background = isAtual ? 'var(--accent)' : '#ccc';
-  g('dot1').style.background = isAtual ? '#ccc' : 'var(--accent)';
+  renderDetalhe(); // aplica texto e cores do modo atual
 
   // animação rápida
   const box = g('dSaldoToggleBox');
@@ -1512,9 +1502,9 @@ function renderDetalhe(){
   // manter modo atual ao re-renderizar
   if(saldoModo===1){
     g('dSaldoLabel').textContent='🏦 A Conciliar';
-    g('dSaldoLabel').style.color='#0055cc';
+    g('dSaldoLabel').style.color='#b34700'; // laranja escuro
     g('dSaldo').textContent=fR(sConc);
-    g('dSaldo').style.color=sConc>=0?'#0055cc':'#cc2200';
+    g('dSaldo').style.color='#b34700';     // laranja escuro
     g('dSaldoSub').textContent=`${lancs.length-nConc} pendente${lancs.length-nConc!==1?'s':''} de conciliação`;
   } else {
     g('dSaldoLabel').textContent='💰 Saldo Atual';
