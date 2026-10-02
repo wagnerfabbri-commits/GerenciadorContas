@@ -190,7 +190,10 @@ body{background:#d0d8e8;margin:0;padding:0;}
 
 /* Pré-visualização de impressão (na própria página — compatível com iOS) */
 #areaImpressao{font-family:Arial,sans-serif;font-size:13px;color:#000;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 24px) !important}
-#areaImpressao table{width:100%;border-collapse:collapse;margin-bottom:14px}
+#areaImpressao table,.html2pdf__container table{width:100%;border-collapse:collapse;margin-bottom:14px}
+#areaImpressao th,#areaImpressao td{padding:5px 4px !important;font-size:12px !important}
+#areaImpressao td:nth-child(1),#areaImpressao td:nth-child(3),#areaImpressao td:nth-child(4){white-space:nowrap}
+.html2pdf__container th,.html2pdf__container td{font-size:10pt}
 .print-bar{position:sticky;bottom:calc(-24px - env(safe-area-inset-bottom,0px));display:flex;gap:10px;justify-content:center;background:#fff;padding:12px 0 calc(12px + env(safe-area-inset-bottom,0px));margin-top:16px;border-top:1px solid #e0e0e0;z-index:1}
 .print-bar button{flex:1;max-width:200px;padding:11px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
 .print-btn-ok{background:#0055cc;color:#fff}
@@ -808,31 +811,108 @@ function gerarRelLanc(){
   g('btnImprimirLancBox').style.display=lancs.length?'block':'none';
 }
 
-function _abrirJanelaImpressao(html){
-  // Pré-visualização na própria página (o iOS bloqueia janelas novas / window.open)
+// ── IMPRESSÃO / COMPARTILHAMENTO EM PDF ──
+// No iPhone (app na tela inicial) o window.print() é ignorado. Por isso o relatório
+// vira um PDF e é aberto na folha de compartilhamento do iOS (Imprimir, WhatsApp, Mail…).
+let _pdfFile=null, _pdfNome='relatorio.pdf', _pdfToken=0;
+
+function _carregarHtml2pdf(){
+  if(window.html2pdf) return Promise.resolve();
+  const urls=[
+    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+    'https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js'
+  ];
+  return urls.reduce((p,url)=>p.catch(()=>new Promise((ok,erro)=>{
+    if(window.html2pdf) return ok();
+    const sc=document.createElement('script');
+    sc.src=url; sc.onload=()=>window.html2pdf?ok():erro(); sc.onerror=erro;
+    document.head.appendChild(sc);
+  })), Promise.reject());
+}
+
+function _nomeArquivo(base){
+  const limpo=base.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^\w-]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  return limpo+'-'+hj()+'.pdf';
+}
+
+function _abrirJanelaImpressao(html, nomeBase){
   const area=g('areaImpressao');
-  area.innerHTML=html
+  _pdfFile=null;
+  _pdfNome=_nomeArquivo(nomeBase||'Relatorio');
+  const token=++_pdfToken;
+  area.innerHTML='<div id="pdfConteudo">'+html+'</div>'
     +'<div class="print-bar">'
     +'<button type="button" class="print-btn-no" onclick="fecharImpressao()">✕ Fechar</button>'
-    +'<button type="button" class="print-btn-ok" onclick="dispararImpressao()">🖨️ Imprimir</button>'
+    +'<button type="button" class="print-btn-ok" id="btnPdfShare" onclick="compartilharPdf()" disabled>⏳ Gerando PDF…</button>'
     +'</div>';
   area.style.display='block';
   area.scrollTop=0;
+
+  // Gera o PDF já ao abrir, para que o toque em "Compartilhar" chame o iOS na hora
+  const fonte=document.createElement('div');
+  fonte.innerHTML=html;
+  fonte.style.cssText='font-family:Arial,sans-serif;font-size:11pt;color:#000;background:#fff;padding:0';
+  _carregarHtml2pdf().then(()=>window.html2pdf().set({
+      margin:[10,10,12,10],
+      filename:_pdfNome,
+      image:{type:'jpeg',quality:0.95},
+      html2canvas:{scale:2,backgroundColor:'#ffffff',useCORS:true},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+      pagebreak:{mode:['css','legacy'],avoid:['tr','.print-linha','.print-titulo','.print-subtitulo']}
+    }).from(fonte).outputPdf('blob')
+  ).then(blob=>{
+    if(token!==_pdfToken) return; // relatório já fechado/trocado
+    _pdfFile=new File([blob],_pdfNome,{type:'application/pdf'});
+    const b=g('btnPdfShare'); if(!b) return;
+    b.disabled=false;
+    b.textContent=_podeCompartilharArquivo()?'📤 Compartilhar':'⬇ Baixar PDF';
+  }).catch(()=>{
+    if(token!==_pdfToken) return;
+    const b=g('btnPdfShare'); if(!b) return;
+    b.disabled=false;
+    b.textContent='🖨️ Imprimir';
+    b.onclick=dispararImpressao;
+    const aviso=document.createElement('div');
+    aviso.style.cssText='font-size:11px;color:#b34700;text-align:center;margin-top:10px';
+    aviso.textContent='Não foi possível gerar o PDF (verifique a internet). Usando a impressão do navegador.';
+    g('pdfConteudo').appendChild(aviso);
+  });
+}
+
+function _podeCompartilharArquivo(){
+  try{ return !!(_pdfFile && navigator.canShare && navigator.canShare({files:[_pdfFile]})); }
+  catch(e){ return false; }
+}
+
+function compartilharPdf(){
+  if(!_pdfFile) return;
+  if(_podeCompartilharArquivo()){
+    // chamado direto no toque: o iOS exige isso para abrir a folha de compartilhamento
+    navigator.share({files:[_pdfFile],title:_pdfNome.replace(/\.pdf$/,'')})
+      .catch(e=>{ if(e && e.name!=='AbortError') _baixarPdf(); });
+  } else {
+    _baixarPdf();
+  }
+}
+
+function _baixarPdf(){
+  const url=URL.createObjectURL(_pdfFile);
+  const a=document.createElement('a');
+  a.href=url; a.download=_pdfNome;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 
 function fecharImpressao(){
+  _pdfToken++; _pdfFile=null;
   const area=g('areaImpressao');
   area.style.display='none';
   area.innerHTML='';
 }
 
 function dispararImpressao(){
-  try{
-    if(typeof window.print!=='function') throw new Error('sem suporte');
-    window.print();
-  }catch(e){
-    alert('Este modo do app não permitiu abrir a impressão. Abra o app pelo Safari e tente de novo, ou use Compartilhar › Imprimir.');
-  }
+  try{ window.print(); }
+  catch(e){ alert('Não foi possível abrir a impressão neste modo do app.'); }
 }
 
 function imprimirRelLanc(){
@@ -887,7 +967,7 @@ function imprimirRelLanc(){
     +'<div class="print-linha"><span>Entradas</span><span style="color:#0055cc">'+fR(cr)+'</span></div>'
     +'<div class="print-linha"><span>Saídas</span><span style="color:#cc2200">'+fR(db)+'</span></div>'
     +'<div class="print-linha print-total"><span>Saldo Final</span><span style="color:'+(sf>=0?'#0055cc':'#cc2200')+'">'+fR(sf)+'</span></div>'
-  );
+  , 'Extrato-'+ct.nome);
 }
 
 let modoRel='periodo';
@@ -1017,7 +1097,7 @@ function imprimirRelatorio(){
     +'<div class="print-linha print-total"><span>Resultado Líquido</span><span style="color:'+(rs>=0?'#0055cc':'#cc2200')+'">'+fR(rs)+'</span></div>'
     +'<div class="print-linha"><span>Conciliados</span><span>'+nConc+' lançamentos</span></div>'
     +'<div class="print-linha"><span>Pendentes</span><span>'+(lancs.length-nConc)+' lançamentos</span></div>'
-  );
+  , 'Gastos-por-Categoria');
 }
 
 function conc(id){
